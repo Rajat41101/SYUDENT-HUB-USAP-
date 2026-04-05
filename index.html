@@ -1454,7 +1454,7 @@ async function fetchMyNotes() {
     container.innerHTML = "Calling the Python server...";
 
     try {
-        const response = await fetch("http://127.0.0.1:5000/api/notes");
+        const response = await fetch("https://usap-backend-rw31.onrender.com/api/notes");
         const data = await response.json();
         
         container.innerHTML = "✅ Success! Data from MongoDB:<br>";
