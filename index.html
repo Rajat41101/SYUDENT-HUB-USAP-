@@ -200,7 +200,7 @@ select option{background:var(--bg3)}
 .dc:hover{border-color:var(--ac);transform:translateY(-3px);box-shadow:0 12px 40px rgba(0,0,0,.3),0 0 18px var(--glow)}
 .dc::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;opacity:0;transition:.3s;background:linear-gradient(90deg,transparent,var(--ac),transparent)}
 .dc:hover::before{opacity:1}
-.dc-icon{font-size:2rem;margin-bottom:11px}
+.dc-icon{font-size:2rem;}
 .dc-name{font-family:var(--fh);font-size:.9rem;font-weight:700;margin-bottom:5px;color:var(--t1)}
 .dc-sub{font-size:11px;color:var(--t2)}
 
@@ -624,6 +624,10 @@ footer p{font-size:11px;color:var(--t3)}
         <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
           <div class="srch"><input type="text" id="d-search" placeholder="Search notes..." oninput="searchN(this.value)"/></div>
           <button class="btn md bv" id="d-up-btn" style="display:none" onclick="go('upload')">+ Upload</button>
+          <button class="btn md bo" onclick="fetchMyNotes()" style="margin-left: 10px;">
+    Fetch Database Notes
+</button>
+<div id="notes-container" style="width: 100%; margin-top: 15px; font-size: 11px; color: var(--ac3);"></div>
         </div>
       </div>
       <div class="krow">
@@ -1444,7 +1448,23 @@ function showErr(el,msg){el.textContent=msg;el.style.display='block';}
 function ini(u){return ((u.fn||'?')[0]+(u.ln||'')[0]).toUpperCase();}
 function escJ(s){return s.replace(/'/g,"\\'");}
 function escH(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+/* ═══ DATABASE CONNECTION ═══ */
+async function fetchMyNotes() {
+    const container = document.getElementById('notes-container');
+    container.innerHTML = "Calling the Python server...";
 
+    try {
+        const response = await fetch("http://127.0.0.1:5000/api/notes");
+        const data = await response.json();
+        
+        container.innerHTML = "✅ Success! Data from MongoDB:<br>";
+        data.forEach(note => {
+            container.innerHTML += `<br>📘 <b>${note.title}</b> (Subject: ${note.subject})`;
+        });
+    } catch (error) {
+        container.innerHTML = "❌ Failed. Is the Python server running?";
+    }
+}
 /* ═══ INIT ═══ */
 window.addEventListener('load',function(){
   var targets=[['c1',1200],['c2',12],['c3',340],['c4',48]];
