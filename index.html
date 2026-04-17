@@ -1064,19 +1064,58 @@ function demoL(r){
   document.getElementById('l-pw').value=r==='admin'?'admin123':'password';
   handleLogin();
 }
-function handleLogin(){
-  var em=document.getElementById('l-em').value.trim();
-  var pw=document.getElementById('l-pw').value;
-  var err=document.getElementById('l-err');
-  err.style.display='none';
-  if(!em||!pw){showErr(err,'Please fill all fields.');return;}
-  var u=USERS.filter(function(x){return x.email===em&&x.pw===pw;})[0];
-  if(!u){showErr(err,'Invalid email or password.');return;}
-  CU=u;
-  if(!USER_DLS[CU.id])USER_DLS[CU.id]=[];
-  setNav(u);
-  toast('Welcome back, '+u.fn+'! 👋','success');
-  go('dashboard');
+async function handleLogin() {
+  var em = document.getElementById('l-em').value.trim();
+  var pw = document.getElementById('l-pw').value;
+  var err = document.getElementById('l-err');
+  err.style.display = 'none';
+
+  if (!em || !pw) {
+    showErr(err, 'Please fill all fields.');
+    return;
+  }
+
+  // Visual feedback: disable button while checking database
+  var btn = document.querySelector('#page-login .btn.bv');
+  var originalText = btn.textContent;
+  btn.textContent = 'Verifying...';
+  btn.disabled = true;
+
+  try {
+    var response = await fetch('https://usap-backend-rw31.onrender.com/api/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: em, password: pw })
+    });
+
+    var data = await response.json();
+
+    if (response.ok) {
+      // Login Success - data comes from MongoDB via your Python backend
+      CU = {
+        id: data.user.id,
+        fn: data.user.firstName,
+        email: data.user.email,
+        role: data.user.role,
+        dept: data.user.dept
+      };
+      
+      if (!USER_DLS[CU.id]) USER_DLS[CU.id] = [];
+      setNav(CU);
+      toast('Welcome back, ' + CU.fn + '! 👋', 'success');
+      go('dashboard');
+    } else {
+      // Login Failed (Wrong password or email)
+      showErr(err, data.message || 'Invalid email or password.');
+    }
+  } catch (error) {
+    showErr(err, 'Server error. Please try again later.');
+    console.error('Login error:', error);
+  } finally {
+    // Restore button state
+    btn.textContent = originalText;
+    btn.disabled = false;
+  }
 }
 function showForgotPw() {
   var bodyHtml = '<p style="margin-bottom:14px; font-size:12px; color:var(--t2);">Enter your registered email address and we will send you a link to reset your password.</p>' +
