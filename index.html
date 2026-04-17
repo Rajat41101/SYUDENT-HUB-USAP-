@@ -450,6 +450,14 @@ footer p{font-size:11px;color:var(--t3)}
 .fu{animation:fadeUp .45s ease both}.fu1{animation-delay:.04s}.fu2{animation-delay:.08s}.fu3{animation-delay:.12s}
 @media(max-width:900px){.hero,.auth-pg,.dlayout,.admin-layout{grid-template-columns:1fr}.hv,.al,.sb,.asb{display:none}.krow,.akpi,.dl-stats{grid-template-columns:repeat(2,1fr)}.roles-grid,.pg2{grid-template-columns:1fr}.prof-stats{grid-template-columns:1fr 1fr}}
 </style>
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+<script type="text/javascript">
+   (function(){
+      emailjs.init({
+        publicKey: "AJseowRw_h5dVj1Zp",
+      });
+   })();
+</script>
 </head>
 <body>
 <div class="toast" id="toast"></div>
@@ -663,7 +671,7 @@ footer p{font-size:11px;color:var(--t3)}
       <div class="fg iw"><label>Password</label><span class="ic">🔒</span><input type="password" id="l-pw" placeholder="Your password" onkeydown="if(event.key==='Enter')handleLogin()"/></div>
       <!-- ══ FORGOT PASSWORD LINK ══ -->
       <div style="text-align:right;margin-top:-6px;margin-bottom:14px">
-        <a class="alink" style="font-size:12px;font-weight:600" onclick="openFPModal()">🔑 Forgot password?</a>
+        <a class="alink" style="font-size:12px; font-weight:600" onclick="showForgotPw()">🔑 Forgot password?</a>
       </div>
       <button class="btn lg bv" style="width:100%;justify-content:center" onclick="handleLogin()">Log In →</button>
     </div></div>
@@ -1069,6 +1077,54 @@ function handleLogin(){
   setNav(u);
   toast('Welcome back, '+u.fn+'! 👋','success');
   go('dashboard');
+}
+function showForgotPw() {
+  var bodyHtml = '<p style="margin-bottom:14px; font-size:12px; color:var(--t2);">Enter your registered email address and we will send you a link to reset your password.</p>' +
+                 '<div class="fg iw"><span class="ic">✉️</span><input type="email" id="reset-em" placeholder="you@university.edu" style="width:100%; padding-left:36px;"/></div>';
+
+  openModal('Reset Password', bodyHtml, function() {
+    var em = document.getElementById('reset-em').value.trim();
+    
+    if(!em) {
+      toast('Please enter your email address.', 'error');
+      return;
+    }
+    
+    var userExists = USERS.filter(function(u) { return u.email === em; }).length > 0;
+    
+    if(userExists) {
+      // Change button to show loading state
+      var btn = document.getElementById('m-ok');
+      var originalText = btn.textContent;
+      btn.textContent = 'Sending...';
+      btn.disabled = true;
+
+      // Define the variables to send to your EmailJS template
+      var templateParams = {
+        to_email: em,
+        reset_link: 'https://yourwebsite.com/reset-password' // Replace with your actual reset page link later
+      };
+
+      // Send the email using EmailJS with your specific IDs
+      emailjs.send('service_3x1qkce', 'template_y8j9sy8', templateParams)
+        .then(function(response) {
+           toast('Reset link sent to ' + em, 'success');
+           closeModal();
+           btn.textContent = originalText;
+           btn.disabled = false;
+        }, function(error) {
+           toast('Failed to send email. Try again later.', 'error');
+           console.log('EmailJS Error:', error);
+           btn.textContent = originalText;
+           btn.disabled = false;
+        });
+
+    } else {
+      toast('Email not found in our system.', 'error');
+    }
+  });
+
+  document.getElementById('m-ok').textContent = 'Send Reset Link';
 }
 function handleReg(){
   var fn=document.getElementById('r-fn').value.trim();
