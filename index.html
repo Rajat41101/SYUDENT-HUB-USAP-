@@ -1101,8 +1101,8 @@ function showForgotPw() {
 
       // Define the variables to send to your EmailJS template
       var templateParams = {
-        to_email: em,
-        reset_link: 'https://rajat41101.github.io/SYUDENT-HUB-USAP-/' // Replace with your actual reset page link later
+        email: em,    // Changed to match {{email}}
+        link: 'https://rajat41101.github.io/SYUDENT-HUB-USAP-/'  // Changed to match {{link}}
       };
 
       // Send the email using EmailJS with your specific IDs
