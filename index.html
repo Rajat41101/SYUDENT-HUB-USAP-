@@ -1095,6 +1095,7 @@ async function handleLogin() {
       CU = {
         id: data.user.id,
         fn: data.user.firstName,
+        ln: data.user.lastName, // <--- PASTE THIS LINE HERE
         email: data.user.email,
         role: data.user.role,
         dept: data.user.dept
