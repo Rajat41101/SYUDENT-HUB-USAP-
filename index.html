@@ -1126,21 +1126,80 @@ function showForgotPw() {
 
   document.getElementById('m-ok').textContent = 'Send Reset Link';
 }
-function handleReg(){
-  var fn=document.getElementById('r-fn').value.trim();
-  var ln=document.getElementById('r-ln').value.trim();
-  var em=document.getElementById('r-em').value.trim();
-  var pw=document.getElementById('r-pw').value;
-  var dept=document.getElementById('r-dept').value;
-  var yr=document.getElementById('r-yr').value;
-  var err=document.getElementById('r-err');
-  err.style.display='none';
-  if(!fn||!ln||!em||!pw||!dept||!yr){showErr(err,'Please fill all fields.');return;}
-  if(pw.length<8){showErr(err,'Password must be 8+ characters.');return;}
-  if(USERS.filter(function(u){return u.email===em;}).length){showErr(err,'Email already registered.');return;}
-  var nu={id:'u'+(USERS.length+1),fn:fn,ln:ln,email:em,pw:pw,role:'student',yr:parseInt(yr),dept:dept,bio:'',uni:'',applied:false,dlCount:0};
-  USERS.push(nu);CU=nu;USER_DLS[nu.id]=[];
-  setNav(nu);toast('Welcome to USAP, '+fn+'! 🎉','success');go('dashboard');
+async function handleReg() {
+  var fn = document.getElementById('r-fn').value.trim();
+  var ln = document.getElementById('r-ln').value.trim();
+  var em = document.getElementById('r-em').value.trim();
+  var pw = document.getElementById('r-pw').value;
+  var dept = document.getElementById('r-dept').value;
+  var yr = document.getElementById('r-yr').value;
+  var err = document.getElementById('r-err');
+  
+  err.style.display = 'none';
+  
+  if(!fn || !ln || !em || !pw || !dept || !yr) {
+    showErr(err, 'Please fill all fields.');
+    return;
+  }
+  if(pw.length < 8) {
+    showErr(err, 'Password must be 8+ characters.');
+    return;
+  }
+
+  // Disable button to show it's loading
+  var btn = document.querySelector('#page-register .btn.bv');
+  var originalText = btn.textContent;
+  btn.textContent = 'Creating Account...';
+  btn.disabled = true;
+
+  try {
+    // Send data to your backend server
+    var response = await fetch('https://usap-backend-rw31.onrender.com/api/register', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        firstName: fn,
+        lastName: ln,
+        email: em,
+        password: pw,
+        department: dept,
+        year: yr,
+        role: 'student'
+      })
+    });
+
+    var data = await response.json();
+
+    if (response.ok) {
+      // Success! The backend saved it to MongoDB
+      // We map the database keys to your CU object
+      CU = {
+        id: data.user.id || 'u' + Date.now(),
+        fn: fn,
+        ln: ln,
+        email: em,
+        role: 'student',
+        dept: dept,
+        yr: yr
+      };
+      
+      if(!USER_DLS[CU.id]) USER_DLS[CU.id] = [];
+      setNav(CU);
+      toast('Welcome to USAP, ' + fn + '! 🎉', 'success');
+      go('dashboard');
+    } else {
+      // The server rejected it (e.g., email already exists)
+      showErr(err, data.message || 'Registration failed.');
+    }
+  } catch (error) {
+    showErr(err, 'Could not connect to the server.');
+    console.error('Fetch error:', error);
+  } finally {
+    btn.textContent = originalText;
+    btn.disabled = false;
+  }
 }
 function logout(){
   CU=null;
